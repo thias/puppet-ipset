@@ -10,19 +10,19 @@
 #
 class ipset::base inherits ipset::params {
 
-    # Main package
-    package { $ipset::params::package:
-        alias  => 'ipset',
-        ensure => installed,
-    }
+  # Main package
+  package { $ipset::params::package:
+    alias  => 'ipset',
+    ensure => installed,
+  }
 
-    # Custom script
-    file { '/usr/local/sbin/ipset_from_file':
-        owner  => 'root',
-        group  => 'root',
-        mode   => '0755',
-        source => "puppet:///modules/${module_name}/ipset_from_file",
-    }
+  # Custom script
+  file { '/usr/local/sbin/ipset_from_file':
+    owner  => 'root',
+    group  => 'root',
+    mode   => '0755',
+    source => "puppet:///modules/${module_name}/ipset_from_file",
+  }
 
 }
 

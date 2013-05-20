@@ -15,52 +15,52 @@
 #
 # Sample Usage:
 #  file { '/path/to/my_blacklist.txt': content => "10.0.0.1\n10.0.0.2\n" }
-#  ipset::test { 'my_blacklist':
-#      from_file => '/path/to/my_blacklist.txt',
+#  ipset { 'my_blacklist':
+#    from_file => '/path/to/my_blacklist.txt',
 #  }
 #
 define ipset (
-    $from_file = false,
-    $ipset_type = 'hash:ip',
-    $ipset_create_options = '',
-    $ipset_add_options = '',
-    $ensure = undef
+  $from_file = false,
+  $ipset_type = 'hash:ip',
+  $ipset_create_options = '',
+  $ipset_add_options = '',
+  $ensure = undef
 ) {
 
-    # Even for "absent", since it requires the tool to work
-    include ipset::base
+  # Even for "absent", since it requires the tool to work
+  include ipset::base
 
-    if $ensure == 'absent' {
-        exec { "/usr/sbin/ipset destroy ${title}":
-            onlyif  => "/usr/sbin/ipset list ${title} &>/dev/null",
-            require => Package['ipset'],
-        }
-    } else {
-
-        # Run in the from_file mode (the only one implemented initially
-        if $from_file {
-
-            # We need two execs, one for when the set doesn't exist and the
-            # other when the file changes. It's not possible to mix both
-            # "unless" and "subscribe", as "unless" will prevent the
-            # "subscribe" triggered runs from actually being executed.
-            $command = "/usr/local/sbin/ipset_from_file -n ${title} -f ${from_file} -t \"${ipset_type}\" -c \"${ipset_create_options}\" -a \"${ipset_add_options}\""
-            exec { "ipset-create-${name}":
-                command   => $command,
-                unless    => "/usr/sbin/ipset list ${title}",
-                require   => Package['ipset'],
-                path      => [ '/sbin', '/usr/sbin', '/bin', '/usr/bin' ],
-            }
-            exec { "ipset-refresh-${name}":
-                command     => $command,
-                subscribe   => File[$from_file],
-                refreshonly => true,
-                require     => Package['ipset'],
-                path        => [ '/sbin', '/usr/sbin', '/bin', '/usr/bin' ],
-            }
-        }
-
+  if $ensure == 'absent' {
+    exec { "/usr/sbin/ipset destroy ${title}":
+      onlyif  => "/usr/sbin/ipset list ${title} &>/dev/null",
+      require => Package['ipset'],
     }
+  } else {
+
+    # Run in the from_file mode (the only one implemented initially
+    if $from_file {
+
+      # We need two execs, one for when the set doesn't exist and the
+      # other when the file changes. It's not possible to mix both
+      # "unless" and "subscribe", as "unless" will prevent the
+      # "subscribe" triggered runs from actually being executed.
+      $command = "/usr/local/sbin/ipset_from_file -n ${title} -f ${from_file} -t \"${ipset_type}\" -c \"${ipset_create_options}\" -a \"${ipset_add_options}\""
+      exec { "ipset-create-${name}":
+        command   => $command,
+        unless    => "/usr/sbin/ipset list ${title}",
+        require   => Package['ipset'],
+        path      => [ '/sbin', '/usr/sbin', '/bin', '/usr/bin' ],
+      }
+      exec { "ipset-refresh-${name}":
+        command     => $command,
+        subscribe   => File[$from_file],
+        refreshonly => true,
+        require     => Package['ipset'],
+        path        => [ '/sbin', '/usr/sbin', '/bin', '/usr/bin' ],
+      }
+    }
+
+  }
 
 }
 

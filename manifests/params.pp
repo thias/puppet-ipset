@@ -10,10 +10,10 @@
 #
 class ipset::params {
 
-    $package = $::operatingsystem ? {
-        'Gentoo' => 'net-firewall/ipset',
-         default => 'ipset',
-    }
+  $package = $::operatingsystem ? {
+      'Gentoo' => 'net-firewall/ipset',
+       default => 'ipset',
+  }
 
 }
 

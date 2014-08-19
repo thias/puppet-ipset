@@ -31,8 +31,9 @@ define ipset (
   include ipset::base
 
   if $ensure == 'absent' {
-    exec { "/usr/sbin/ipset destroy ${title}":
-      onlyif  => "/usr/sbin/ipset list ${title} &>/dev/null",
+    exec { "ipset destroy ${title}":
+      onlyif  => "ipset list ${title} &>/dev/null",
+      path    => [ '/sbin', '/usr/sbin', '/bin', '/usr/bin' ],
       require => Package['ipset'],
     }
   } else {
@@ -47,7 +48,7 @@ define ipset (
       $command = "/usr/local/sbin/ipset_from_file -n ${title} -f ${from_file} -t \"${ipset_type}\" -c \"${ipset_create_options}\" -a \"${ipset_add_options}\""
       exec { "ipset-create-${name}":
         command   => $command,
-        unless    => "/usr/sbin/ipset list ${title}",
+        unless    => "ipset list ${title}",
         require   => Package['ipset'],
         path      => [ '/sbin', '/usr/sbin', '/bin', '/usr/bin' ],
       }

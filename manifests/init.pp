@@ -49,6 +49,7 @@ define ipset (
       exec { "ipset-create-${name}":
         command   => $command,
         unless    => "ipset list ${title}",
+        logoutput => false,
         require   => Package['ipset'],
         path      => [ '/sbin', '/usr/sbin', '/bin', '/usr/bin' ],
       }

@@ -57,6 +57,7 @@ define ipset (
         command     => $command,
         subscribe   => File[$from_file],
         refreshonly => true,
+        logoutput   => false,
         require     => Package['ipset'],
         path        => [ '/sbin', '/usr/sbin', '/bin', '/usr/bin' ],
       }

@@ -36,25 +36,6 @@ class ipset::base inherits ipset::params {
     source => "puppet:///modules/${module_name}/ipset_from_file",
   }
 
-  if ($::osfamily = 'RedHat') and ($operatingsystemrelease =~ /^7.*/  ) {
 
-    file { '/etc/ipset':
-      ensure => 'directory',
-    }
-
-    file { $service_file:
-      ensure  => 'present',
-      replace => 'no',
-      source  => 'puppet:///modules/ipset/ipset.service',
-      owner   => $user,
-    }
-
-    file { $startscript:
-      ensure  => 'present',
-      replace => 'no',
-      source  => 'puppet:///modules/ipset/ipset.start-stop',
-      owner   => $user,
-    }
-  } 
 }
 

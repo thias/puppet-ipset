@@ -1,0 +1,263 @@
+#!/bin/bash
+#
+# ipset      Start, stop and save IP sets
+#
+# chkconfig: 2345 07 93
+# description:  Starts, stops and saves IP sets
+#
+# config: /etc/sysconfig/ipset
+# config: /etc/sysconfig/iptables-config
+# config: /etc/sysconfig/ip6tables-config
+#
+### BEGIN INIT INFO
+# Provides: ipset
+# Default-Start:  2 3 4 5
+# Default-Stop: 0 1 6
+# Short-Description: start and stop IP sets
+# Description: Start, stop and save IP sets
+### END INIT INFO
+
+# Source function library.
+. /etc/init.d/functions
+
+IPSET=ipset
+IPSET_BIN=/usr/sbin/${IPSET}
+IPSET_DATA=/etc/sysconfig/$IPSET
+VAR_SUBSYS_IPSET=/var/lock/subsys/$IPSET
+
+IPTABLES_CONFIG=/etc/sysconfig/iptables-config
+IP6TABLES_CONFIG=${IPTABLES_CONFIG/iptables/ip6tables}
+
+# only usable for root
+[ $EUID = 0 ] || exit 4
+
+if [[ ! -x ${IPSET_BIN} ]]; then
+	echo -n "${IPSET_BIN} does not exist."; warning; echo
+	exit 5
+fi
+
+# Default ipset configuration:
+[[ -z $IPSET_SAVE_ON_STOP ]] && IPSET_SAVE_ON_STOP=no		# Overridden by ip(6)tables IP(6)TABLES_SAVE_ON_STOP
+[[ -z $IPSET_SAVE_ON_RESTART ]] && IPSET_SAVE_ON_RESTART=no	# Overridden by ip(6)tables IP(6)TABLES_SAVE_ON_RESTART
+
+# Load iptables configuration(s)
+[[ -f "$IPTABLES_CONFIG" ]] && . "$IPTABLES_CONFIG"
+[[ -f "$IP6TABLES_CONFIG" ]] && . "$IP6TABLES_CONFIG"
+
+# It doesn't make sense to save iptables config and not our config
+[[ ${IPTABLES_SAVE_ON_STOP} = yes || ${IP6TABLES_SAVE_ON_STOP} = yes ]] && IPSET_SAVE_ON_STOP=yes
+[[ ${IPTABLES_SAVE_ON_RESTART} = yes || ${IP6TABLES_SAVE_ON_RESTART} = yes ]] && IPSET_SAVE_ON_RESTART=yes
+
+flush_n_delete() {
+    local ret=0 set
+
+    if [[ -n $(lsmod | grep "^xt_set ") ]]; then
+	save
+        rmmod xt_set 2>/dev/null
+        [[ $? -ne 0 ]] && {
+	    echo -n $"${IPSET}: Current ip*tables configuration requires ipset";
+	    warning; echo
+	    return 1;
+	}
+    fi
+
+    [[ -z "$(${IPSET_BIN} list -n)" ]] && return 1
+
+    echo -n $"${IPSET}: Flushing and destroying IP sets: "
+
+    # Flush sets
+    ${IPSET_BIN} flush
+    let ret+=$?
+
+    # Delete ipset sets. If we don't do them individually, then none
+    # will be deleted unless they all can be.
+    for set in $(${IPSET_BIN} list -name); do
+	    ${IPSET_BIN} destroy 2>/dev/null
+	    [[ $? -ne 0 ]] && ret=1
+    done
+
+    [[ $ret -eq 0 ]] && success || failure
+    echo
+
+    return $ret
+}
+
+start() {
+    # Do not start if there is no config file.
+    [[ ! -f "$IPSET_DATA" ]] && {
+	echo $"${IPSET}: Loaded with no configuration"
+	return 6;
+    }
+
+    [[ -n "$(${IPSET_BIN} list -n)" ]] && flush_n_delete
+
+    # This is the easy way to start but would leave any old
+    # entries still configured. Still, better than nothing -
+    # but fine if we had no config
+    echo -n $"${IPSET}: Loading IP sets: "
+    ${IPSET_BIN} restore -! <${IPSET_DATA}
+    res=$?
+    [[ $res -eq 0 ]] && success || failure
+    echo
+
+    if [[ $res -ne 0 ]]; then
+	return 1
+    fi
+
+    touch $VAR_SUBSYS_IPSET
+    return 0
+}
+
+stop() {
+    # Nothing to stop if ip_set module is not loaded.
+    lsmod | grep -q "^ip_set "
+    [[ $? -ne 0 ]] && return 6
+
+    flush_n_delete
+
+    rm -f $VAR_SUBSYS_IPSET
+    return 0
+}
+
+save() {
+    # Do not save if ip_set module is not loaded.
+    lsmod | grep -q "^ip_set "
+    [[ $? -ne 0 ]] && return 6
+
+    [[ -z $(${IPSET_BIN} list -name) ]] && {
+	echo -n $"${IPSET}: No IP sets: "; warning; echo
+	return 0
+    }
+
+    echo -n $"${IPSET}: Saving IP sets to $IPSET_DATA: "
+
+    ret=0
+    TMP_FILE=$(/bin/mktemp -q /tmp/$IPSET.XXXXXX) \
+	&& chmod 600 "$TMP_FILE" \
+	&& ${IPSET_BIN} save > $TMP_FILE 2>/dev/null \
+	&& [[ -s $TMP_FILE ]] \
+	|| ret=1
+
+    if [[ $ret -eq 0 ]]; then
+	# No need to do anything if the files are the same
+	if [[ ! -f $IPSET_DATA ]]; then
+	    mv $TMP_FILE $IPSET_DATA && chmod 600 $IPSET_DATA || ret=1
+	else
+	    diff -q $TMP_FILE $IPSET_DATA >/dev/null
+
+	    if [[ $? -ne 0 ]]; then
+		if [[ -f $IPSET_DATA ]]; then
+		    cp -f --preserve=timestamps $IPSET_DATA $IPSET_DATA.save \
+			&& chmod 600 $IPSET_DATA.save \
+			|| ret=1
+		fi
+		if [[ $ret -eq 0 ]]; then
+		    cp -f --preserve=timestamps $TMP_FILE $IPSET_DATA \
+			&& chmod 600 $IPSET_DATA \
+			|| ret=1
+		fi
+	    fi
+	fi
+    fi
+
+    rm -f $TMP_FILE
+
+    [ $ret -eq 0 ] && success || failure
+    echo
+    return $ret
+}
+
+status() {
+    if [ ! -f "$VAR_SUBSYS_IPSET" -a -z "$(${IPSET_BIN} list -name)" ]; then
+	echo $"${IPSET}: not running"
+	return 3
+    fi
+
+    local ret=0 set
+
+    # No IP sets, ip_set module is not loaded.
+    lsmod | grep -q "^ip_set "
+    [[ $? -ne 0 ]] && return 3
+
+    for set in $(${IPSET_BIN} list -name | sort -u); do
+	LANG=C ipset list $set | awk '{
+  m = 0
+  n = 0
+  do {
+    if ($i == "Members:") { m = 1 }
+    if (m == 0) {
+      if ($i ~ /^Name:/)
+        print $i
+      else
+        print "  "$i
+    } else
+      n++
+  } while (getline > 0)
+  print "  Members: "n-1
+}'
+	let ret+=$?
+    done
+
+    return $ret
+}
+
+restart() {
+    [ "x$IPSET_SAVE_ON_RESTART" = "xyes" ] && save
+    stop
+    start
+}
+
+case "$1" in
+    start)
+	[[ -f "$VAR_SUBSYS_IPSET" ]] && exit 0
+	start
+	RETVAL=$?
+	;;
+    stop)
+	[[ $IPSET_SAVE_ON_STOP = yes ]] && save
+	stop
+	RETVAL=$?
+	[[ $RETVAL -eq 6 ]] && {
+	    echo -n $"${IPSET}: not running"; failure; echo
+	    exit 0
+	}
+	;;
+    status)
+	status
+	RETVAL=$?
+	[[ $RETVAL -eq 6 ]] && {
+	    echo -n $"${IPSET}: not running"; failure; echo
+	}
+	;;
+    reload)
+	[[ $IPSET_SAVE_ON_RESTART = yes ]] && save
+	stop
+	RETVAL=$?
+	[[ $RETVAL -eq 6 ]] && {
+	    echo -n $"${IPSET}: not running"; failure; echo
+	    exit 0
+}
+	start
+	RETVAL=$?
+	;;
+    restart|force-reload)
+	[[ $IPSET_SAVE_ON_RESTART = yes ]] && save
+	stop
+	start
+	RETVAL=$?
+	;;
+    condrestart|try-restart)
+	[[ ! -e "$VAR_SUBSYS_IPSET" ]] && exit 0
+	restart
+	RETVAL=$?
+	;;
+    save)
+	save
+	RETVAL=$?
+	;;
+    *)
+	echo $"Usage: $IPSET {start|stop|restart|condrestart|reload|save}" >&2
+	exit 2
+esac
+
+exit $RETVAL

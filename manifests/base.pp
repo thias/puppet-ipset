@@ -17,7 +17,7 @@ class ipset::base inherits ipset::params {
             /(7)/   => '/lib/systemd/system',
         }
         $service_file = $::operatingsystemmajrelease ? {
-            /(7)/   => "ipset.service",
+            /(7)/   => "/etc/systemd/system/ipset.service",
         }
     }
   }

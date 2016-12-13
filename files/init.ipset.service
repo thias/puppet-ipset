@@ -84,6 +84,7 @@ flush_n_delete() {
 
 start() {
     # Do not start if there is no config file.
+    touch $VAR_SUBSYS_IPSET
     [[ ! -f "$IPSET_DATA" ]] && {
 	echo $"${IPSET}: Loaded with no configuration"
 	return 6;

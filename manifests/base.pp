@@ -13,10 +13,8 @@ class ipset::base inherits ipset::params {
    
     case $::osfamily {
     'RedHat': {
-        $service_path = $::operatingsystemmajrelease ? {
-            /(7)/   => '/lib/systemd/system',
-        }
         $service_file = $::operatingsystemmajrelease ? {
+            /(5|6)/ => '/etc/init.d/ipset',        
             /(7)/   => "/etc/systemd/system/ipset.service",
         }
     }

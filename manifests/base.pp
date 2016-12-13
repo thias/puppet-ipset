@@ -24,7 +24,11 @@ class ipset::base inherits ipset::params {
         $init_path = $::operatingsystemmajrelease ? {
             /(5|6)/ => '/etc/init.d/ipset',        
             /(7)/   => '$startscript',
-        }                
+        }       
+        $service_name = $::operatingsystemmajrelease ? {
+            /(5|6)/ => 'ipset',        
+            /(7)/   => 'ipset.service',
+        }             
     }
   }
   # Main package

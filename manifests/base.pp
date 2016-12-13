@@ -50,7 +50,7 @@ class ipset::base inherits ipset::params {
 
     file { $init_path:
       ensure  => 'present',
-      replace => 'no',
+      mode   => '0755',     
       source  => "puppet:///modules/ipset/$init_file",
       owner   => $user,
     }

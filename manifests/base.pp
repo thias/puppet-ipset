@@ -35,9 +35,7 @@ class ipset::base inherits ipset::params {
     mode   => '0755',
     source => "puppet:///modules/${module_name}/ipset_from_file",
   }
-  
-   ($color == 'blue') and ($sound == 'loud')
-  
+
   if ($::osfamily = 'RedHat') and ($operatingsystemrelease =~ /^7.*/  ) {
 
     file { '/etc/ipset':

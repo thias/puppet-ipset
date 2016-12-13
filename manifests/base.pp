@@ -19,7 +19,7 @@ class ipset::base inherits ipset::params {
         }
         $init_file = $::operatingsystemmajrelease ? {
             /(5|6)/ => 'init.ipset.service',        
-            /(7)/   => "ipset.service",
+            /(7)/   => "ipset.start-stop",
         }   
         $init_path = $::operatingsystemmajrelease ? {
             /(5|6)/ => '/etc/init.d/ipset',        

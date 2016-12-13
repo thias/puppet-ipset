@@ -60,7 +60,7 @@ class ipset::base inherits ipset::params {
   if ($::osfamily == 'RedHat') and ($operatingsystemrelease =~ /^7.*/  ) {
       file { '/usr/libexec/ipset':
       ensure => 'directory',
-      }
+      } ->
       file { $service_file:
       ensure  => 'present',
       replace => 'yes',

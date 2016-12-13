@@ -55,6 +55,13 @@ class ipset::base inherits ipset::params {
       source  => 'puppet:///modules/ipset/ipset.start-stop',
       owner   => $user,
     }
+    
+    service { ipset.service:
+      ensure     => running,
+      enable     => true,
+      hasstatus  => true,
+      hasrestart => true,
+    }
   } 
 
 }

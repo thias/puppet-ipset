@@ -17,6 +17,10 @@ class ipset::base inherits ipset::params {
             /(5|6)/ => '/etc/init.d/ipset',        
             /(7)/   => "/etc/systemd/system/ipset.service",
         }
+        $init_file = $::operatingsystemmajrelease ? {
+            /(5|6)/ => 'init.ipset.service',        
+            /(7)/   => "ipset.service",
+        }        
     }
   }
   # Main package
@@ -24,8 +28,6 @@ class ipset::base inherits ipset::params {
     alias  => 'ipset',
     ensure => installed,
   }
-
-
  
   file { '/usr/local/sbin/ipset_from_file':
     owner  => 'root',
@@ -34,23 +36,14 @@ class ipset::base inherits ipset::params {
     source => "puppet:///modules/${module_name}/ipset_from_file",
   }
 
-  if ($::osfamily == 'RedHat') and ($operatingsystemrelease =~ /^7.*/  ) {
-
     file { '/etc/ipset':
       ensure => 'directory',
     }
 
-    file { $service_file:
+    file { $init_file:
       ensure  => 'present',
       replace => 'no',
-      source  => 'puppet:///modules/ipset/ipset.service',
-      owner   => $user,
-    }
-
-    file { $startscript:
-      ensure  => 'present',
-      replace => 'no',
-      source  => 'puppet:///modules/ipset/ipset.start-stop',
+      source  => "puppet:///modules/ipset/$init_file",
       owner   => $user,
     }
     
@@ -59,6 +52,14 @@ class ipset::base inherits ipset::params {
       enable     => true,
       hasstatus  => true,
       hasrestart => true,
+    }
+    
+  if ($::osfamily == 'RedHat') and ($operatingsystemrelease =~ /^7.*/  ) {
+      file { $service_file:
+      ensure  => 'present',
+      replace => 'no',
+      source  => 'puppet:///modules/ipset/ipset.service',
+      owner   => $user,
     }
   } 
 

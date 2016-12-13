@@ -111,6 +111,7 @@ start() {
 stop() {
     # Nothing to stop if ip_set module is not loaded.
     lsmod | grep -q "^ip_set "
+    save
     [[ $? -ne 0 ]] && return 6
 
     flush_n_delete
@@ -202,6 +203,7 @@ status() {
 }
 
 restart() {
+    save
     [ "x$IPSET_SAVE_ON_RESTART" = "xyes" ] && save
     stop
     start

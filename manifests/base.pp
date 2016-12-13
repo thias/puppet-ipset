@@ -20,7 +20,11 @@ class ipset::base inherits ipset::params {
         $init_file = $::operatingsystemmajrelease ? {
             /(5|6)/ => 'init.ipset.service',        
             /(7)/   => "ipset.service",
-        }        
+        }   
+        $init_path = $::operatingsystemmajrelease ? {
+            /(5|6)/ => '/etc/init.d/ipset',        
+            /(7)/   => '$startscript',
+        }                
     }
   }
   # Main package
@@ -40,7 +44,7 @@ class ipset::base inherits ipset::params {
       ensure => 'directory',
     }
 
-    file { $init_file:
+    file { $init_path:
       ensure  => 'present',
       replace => 'no',
       source  => "puppet:///modules/ipset/$init_file",

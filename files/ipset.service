@@ -12,7 +12,7 @@ ExecReload=/usr/libexec/ipset/ipset.start-stop reload
 # Save current ipset entries on stop/restart.
 #   Value: yes|no,  default: no
 # Saves all ipsets to /etc/sysconfig/ipset if ipset gets stopped
-Environment=IPSET_SAVE_ON_STOP=no IPSET_SAVE_ON_RESTART=no
+Environment=IPSET_SAVE_ON_STOP=yes IPSET_SAVE_ON_RESTART=yes
 
 [Install]
 WantedBy=basic.target

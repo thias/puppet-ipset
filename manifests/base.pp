@@ -56,7 +56,7 @@ class ipset::base inherits ipset::params {
       owner   => $user,
     }
     
-    service { ipset.service:
+    service { 'ipset.service':
       ensure     => running,
       enable     => true,
       hasstatus  => true,

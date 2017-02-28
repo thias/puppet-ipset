@@ -58,9 +58,9 @@ define ipset::iptables (
   $target_name = regsubst($target,'^([^ ]+).*$','\1')
   # Strict vs. looser matching
   if $strictmatch {
-    $iptables_match = "iptables-save | egrep \"^-A ${chain} .+ -m set --match-set ${ipset} ${flags} .*${options}.*-j ${target_name}\""
+    $iptables_match = "iptables-save | egrep \"^-A ${chain} -m set --match-set ${ipset} ${flags} .*${options}.*-j ${target_name}\""
   } else {
-    $iptables_match = "iptables-save | egrep \"^-A ${chain} .+ -m set --match-set ${ipset} ${flags} .*-j ${target_name}\""
+    $iptables_match = "iptables-save | egrep \"^-A ${chain} -m set --match-set ${ipset} ${flags} .*-j ${target_name}\""
   }
 
   # Insert the rule if it's not already there

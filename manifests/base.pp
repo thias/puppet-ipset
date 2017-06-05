@@ -74,6 +74,7 @@ class ipset::base inherits ipset::params {
       enable     => true,
       hasstatus  => true,
       hasrestart => true,
+      require    => File["$service_file"],
     }
 
 

@@ -22,7 +22,7 @@ module Puppet::Parser::Functions
         responseBodyDecoded = Base64.decode64(responseBodyParsed.first["Value"])
         
         # get parsed version of the config as a hash
-        ipsets = JSON.parse(rawIpsetsDecoded)
+        ipsets = JSON.parse(responseBodyDecoded)
         
         ipsetsGroupedByRuleAndPriority = {}
         

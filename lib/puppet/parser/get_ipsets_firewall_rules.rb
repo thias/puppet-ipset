@@ -1,9 +1,9 @@
 module Puppet::Parser::Functions
     newfunction(:get_ipsets_firewall_rules, :type => :rvalue) do |args|
         
-        raw_ipsets = args[0]
+        url = args[0]
 
-        ipsets = function_crunch_conan_ipsets_data( [raw_ipsets] )
+        ipsets = function_get_ipsets_from_consul( [url] )
 
         ipset_firewall = {}
 

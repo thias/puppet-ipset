@@ -4,7 +4,7 @@ module Puppet::Parser::Functions
         url = args[0]
 
         ipsets = function_get_ipsets_from_consul( [url] )
-        
+
         ipset_files = {}
 
         ipsets.each do |ipsetName, ips| 

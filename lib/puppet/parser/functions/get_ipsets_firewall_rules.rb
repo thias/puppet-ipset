@@ -11,7 +11,7 @@ module Puppet::Parser::Functions
     
             priority = ipsetName.split("_")[2]
             
-            ipset_firewall["#{priority} - #{ipsetName} Ipset"] = {
+            ipset_firewall["#{priority} #{ipsetName}"] = {
                 "ipset" => "#{ipsetName} src",
                 "action"=> "accept"
             }

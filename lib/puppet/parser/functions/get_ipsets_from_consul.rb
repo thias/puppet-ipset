@@ -68,8 +68,8 @@ module Puppet::Parser::Functions
                 
             ipset_value.each do |ip, details|  
 
-                # construct the ipset name (e.g savagaming_accept_888 or savagaming_drop_045)
-                ipset_name = nameReplaced + "_" + details["Rule"] + "_" + details["Priority"]
+                # construct the ipset name (e.g savagaming|accept|888 or savagaming|drop|045)
+                ipset_name = nameReplaced + "|" + details["Rule"] + "|" + details["Priority"]
 
                 unless ipsetsGroupedByRuleAndPriority[ipset_name]
                     ipsetsGroupedByRuleAndPriority[ipset_name] = []

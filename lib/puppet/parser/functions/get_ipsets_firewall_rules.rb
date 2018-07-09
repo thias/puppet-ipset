@@ -11,7 +11,7 @@ module Puppet::Parser::Functions
 
         ipsets.each do |ipsetName, ips| 
     
-            priority = ipsetName.split("_")[2]
+            priority = ipsetName.split("|")[2]
             
             ipset_firewall["#{priority} #{ipsetName}"] = {
                 "ipset" => "#{ipsetName} src",

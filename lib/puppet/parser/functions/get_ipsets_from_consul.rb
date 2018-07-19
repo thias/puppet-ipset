@@ -65,20 +65,21 @@ module Puppet::Parser::Functions
 
             # remove "ipsets." magic words from keys
             nameReplaced = ipset_name.gsub("ipsets.", "")
-                
-            ipset_value.each do |ip, details|  
+            
+            unless ipset_value.nil?
+                ipset_value.each do |ip, details|  
 
-                # construct the ipset name (e.g savagaming|accept|888 or savagaming|drop|045)
-                ipset_name = nameReplaced + "|" + details["Rule"] + "|" + details["Priority"]
-                
-                unless ipsetsGroupedByRuleAndPriority[ipset_name]
-                    ipsetsGroupedByRuleAndPriority[ipset_name] = []
+                    # construct the ipset name (e.g savagaming|accept|888 or savagaming|drop|045)
+                    ipset_name = nameReplaced + "." + details["rule"] + "." + details["priority"]
+                    
+                    unless ipsetsGroupedByRuleAndPriority[ipset_name]
+                        ipsetsGroupedByRuleAndPriority[ipset_name] = []
+                    end
+
+                    ipsetsGroupedByRuleAndPriority[ipset_name] << ip
+
                 end
-
-                ipsetsGroupedByRuleAndPriority[ipset_name] << ip
-
             end
-
         end
 
 

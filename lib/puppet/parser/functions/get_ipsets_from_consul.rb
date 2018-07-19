@@ -66,7 +66,7 @@ module Puppet::Parser::Functions
             # remove "ipsets." magic words from keys
             nameReplaced = ipset_name.gsub("ipsets.", "")
             
-            unless ipset_value.nil?
+            if !ipset_value.nil?
                 ipset_value.each do |ip, details|  
 
                     # construct the ipset name (e.g savagaming_accept_888 or savagaming_drop_045)

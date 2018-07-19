@@ -11,7 +11,7 @@ module Puppet::Parser::Functions
         rolebundle = args[2]
         bulkdenybundleprefix = args[3]
 
-         # Get ipsets from default bundle
+        # Get ipsets from default bundle
         # ------------------------------
         uri = URI.parse(url + defaultbundle)
         response = Net::HTTP.get_response(uri)
@@ -69,14 +69,18 @@ module Puppet::Parser::Functions
             if !ipset_value.nil?
                 ipset_value.each do |ip, details|  
 
-                    # construct the ipset name (e.g savagaming_accept_888 or savagaming_drop_045)
-                    ipset_name = nameReplaced + "_" + details["rule"] + "_" + details["priority"]
-                    
-                    unless ipsetsGroupedByRuleAndPriority[ipset_name]
-                        ipsetsGroupedByRuleAndPriority[ipset_name] = []
-                    end
+                    if details["rule"] == "accept" || details["rule"] == "drop" 
+                        # construct the ipset name (e.g savagaming_accept_888 or savagaming_drop_045)
+                        ipset_name = nameReplaced + "_" + details["rule"][0] + "_" + details["priority"]
+                        
+                        unless ipsetsGroupedByRuleAndPriority[ipset_name]
+                            ipsetsGroupedByRuleAndPriority[ipset_name] = []
+                        end
 
-                    ipsetsGroupedByRuleAndPriority[ipset_name] << ip
+                        ipsetsGroupedByRuleAndPriority[ipset_name] << ip 
+                    else
+                        debug("Ipset #{ipset_name} has ip defined with rule that is not either accept or drop. Skipping its processing..")
+                    end
 
                 end
             end
@@ -110,7 +114,7 @@ module Puppet::Parser::Functions
                 
                 bulkdenyIpsets.each do |ipset_name, ips|
                     # remove "ipsets.bulkdeny" magic words from keys and add rule and priority
-                    ipset_name = ipset_name.gsub("ipsets.bulkdeny.", "") + "_drop_095"
+                    ipset_name = ipset_name.gsub("ipsets.bulkdeny.", "") + "_d_095"
                     unless ipsetsGroupedByRuleAndPriority[ipset_name]
                         ipsetsGroupedByRuleAndPriority[ipset_name] = []
                     end

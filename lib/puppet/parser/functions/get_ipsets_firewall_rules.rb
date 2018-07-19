@@ -13,7 +13,7 @@ module Puppet::Parser::Functions
             
             ipset_firewall["#{priority} #{name}_#{rule}"] = {
                 "ipset" => "#{ipsetName} src",
-                "action"=> rule
+                "action"=> (case rule when "a" then "accept" when "d" then "drop" end)
             }
         end 
 

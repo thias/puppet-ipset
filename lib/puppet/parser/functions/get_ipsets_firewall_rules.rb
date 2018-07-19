@@ -11,7 +11,7 @@ module Puppet::Parser::Functions
             rule = ipsetName.split("_")[1]
             priority = ipsetName.split("_")[2]
             
-            ipset_firewall["#{priority} #{name}_#{rule}"] = {
+            ipset_firewall["#{priority} #{rule} #{name}"] = {
                 "ipset" => "#{ipsetName} src",
                 "action"=> (case rule when "a" then "accept" when "d" then "drop" end)
             }

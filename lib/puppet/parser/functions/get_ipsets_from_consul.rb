@@ -110,7 +110,7 @@ module Puppet::Parser::Functions
                 
                 bulkdenyIpsets.each do |ipset_name, ips|
                     # remove "ipsets.bulkdeny" magic words from keys and add rule and priority
-                    ipset_name = ipset_name.gsub("ipsets.bulkdeny.", "") + "|drop|095"
+                    ipset_name = ipset_name.gsub("ipsets.bulkdeny.", "") + "_drop_095"
                     unless ipsetsGroupedByRuleAndPriority[ipset_name]
                         ipsetsGroupedByRuleAndPriority[ipset_name] = []
                     end

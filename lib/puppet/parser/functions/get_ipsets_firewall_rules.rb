@@ -1,11 +1,7 @@
 module Puppet::Parser::Functions
     newfunction(:get_ipsets_firewall_rules, :type => :rvalue) do |args|
         
-        url = args[0]
-        defaultbundle = args[1]
-        rolebundle = args[2]
-
-        ipsets = function_get_ipsets_from_consul( [url, defaultbundle, rolebundle] )
+        ipsets = function_get_ipsets_from_consul( [args[0], args[1], args[2], args[3]] )
 
         ipset_firewall = {}
 

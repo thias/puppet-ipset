@@ -9,8 +9,9 @@ module Puppet::Parser::Functions
         url = args[0]
         defaultbundle = args[1]
         rolebundle = args[2]
+        bulkdenybundleprefix = args[3]
 
-        # Get ipsets from default bundle
+         # Get ipsets from default bundle
         # ------------------------------
         uri = URI.parse(url + defaultbundle)
         response = Net::HTTP.get_response(uri)
@@ -58,7 +59,6 @@ module Puppet::Parser::Functions
         
         # ------------------------------
 
-
         ipsetsGroupedByRuleAndPriority = {}
         
         ipsets.each do |ipset_name, ipset_value| 
@@ -70,7 +70,7 @@ module Puppet::Parser::Functions
 
                 # construct the ipset name (e.g savagaming|accept|888 or savagaming|drop|045)
                 ipset_name = nameReplaced + "|" + details["Rule"] + "|" + details["Priority"]
-
+                
                 unless ipsetsGroupedByRuleAndPriority[ipset_name]
                     ipsetsGroupedByRuleAndPriority[ipset_name] = []
                 end
@@ -80,6 +80,56 @@ module Puppet::Parser::Functions
             end
 
         end
+
+
+        # Get ipsets from bulk deny bundles
+        # ------------------------------
+
+        # discover the available keys (all that start with the bulkdenybundleprefix)
+        uri = URI.parse(url + bulkdenybundleprefix + "?keys")
+        response = Net::HTTP.get_response(uri)
+        
+        if response.code === "200"
+            
+            bundlesList = JSON.parse(response.body)  
+            
+            # get each bundle and load the ips
+            bundlesList.each do |bundlepath|
+                bundlekey = bundlepath.split("/").last()
+                uri = URI.parse(url + bundlekey)
+                response = Net::HTTP.get_response(uri)
+            
+                responseBodyParsed = JSON.parse(response.body)  
+            
+                # responses from consul API come as base64 encoded
+                responseBodyDecoded = Base64.decode64(responseBodyParsed.first["Value"])
+                
+                # get parsed version of the config as a hash
+                bulkdenyIpsets = JSON.parse(responseBodyDecoded)  
+                
+                bulkdenyIpsets.each do |ipset_name, ips|
+                    # remove "ipsets.bulkdeny" magic words from keys and add rule and priority
+                    ipset_name = ipset_name.gsub("ipsets.bulkdeny.", "") + "|drop|095"
+                    unless ipsetsGroupedByRuleAndPriority[ipset_name]
+                        ipsetsGroupedByRuleAndPriority[ipset_name] = []
+                    end
+                    ipsetsGroupedByRuleAndPriority[ipset_name] = ips
+                end
+
+            end
+            
+            # add the role-specific ipsets config to the default one
+            ipsets = ipsets.merge(roleipsets)
+
+        elsif response.code === "404"
+            # drop a message to the logs if no bulkdeny bundles has been found
+            # that's non-breaking
+            debug("No bulk deny bundles with ipsets in Consul. This might be expected.")
+        else
+            raise response.message
+        end
+        
+        # ------------------------------
 
         ipsetsGroupedByRuleAndPriority
     end

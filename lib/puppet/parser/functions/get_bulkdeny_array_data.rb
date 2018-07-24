@@ -1,5 +1,5 @@
 module Puppet::Parser::Functions
-    newfunction(:get_table_data, :type => :rvalue) do |args|
+    newfunction(:get_bulkdeny_array_data, :type => :rvalue) do |args|
        
         require 'net/http'
         require 'json'

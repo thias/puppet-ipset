@@ -1,7 +1,7 @@
 module Puppet::Parser::Functions
     newfunction(:get_ipsets_definitions, :type => :rvalue) do |args|
         
-        ipsets = function_get_ipsets_from_consul( [args[0], args[1], args[2], args[3]] )
+        ipsets = function_get_ipsets_from_consul( [args[0], args[1], args[2], args[3], args[4]] )
 
         ipset_definitions = {}
 

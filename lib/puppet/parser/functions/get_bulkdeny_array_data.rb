@@ -6,9 +6,10 @@ module Puppet::Parser::Functions
         require "base64"
         
         url = args[0]
-        
+        prefix = args[1]
+
         # discover the available keys (all that start with prefix)
-        uri = URI.parse(url + "?keys")
+        uri = URI.parse(url + prefix + "?keys")
         response = Net::HTTP.get_response(uri)
         
         if response.code === "200"

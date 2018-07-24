@@ -5,7 +5,9 @@ module Puppet::Parser::Functions
         require 'json'
         require "base64"
         
-        uri = args[0]
+        url = args[0]
+        
+        uri = URI.parse(url)
         response = Net::HTTP.get_response(uri)
         
         responseBodyParsed = ""
@@ -57,7 +59,7 @@ module Puppet::Parser::Functions
         else
             raise response.message
         end
-        
+
     end
 end
 

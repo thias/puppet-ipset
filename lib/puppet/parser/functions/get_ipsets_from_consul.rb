@@ -11,7 +11,8 @@ module Puppet::Parser::Functions
         rolebundleurl = args[0] + args[2]
         bulkdenyglobalbundleprefix = args[3]
         bulkdenyrolebundleprefix = args[4]
-
+        bulkdenypriority = args[5]
+        
         # get tabled data for generic "ipsets" bundle 
         ipsets = function_get_table_data([defaultbundleurl])
         
@@ -22,13 +23,13 @@ module Puppet::Parser::Functions
         end
 
         # add global bulk deny ipsets if available
-        globalBulkDenyIpsets = function_get_bulkdeny_array_data([url, bulkdenyglobalbundleprefix])
+        globalBulkDenyIpsets = function_get_bulkdeny_array_data([url, bulkdenyglobalbundleprefix, bulkdenypriority])
         if !globalBulkDenyIpsets.empty?
             ipsets = ipsets.merge(globalBulkDenyIpsets)
         end
         
         # add role-specific bulk deny ipsets if available
-        roleBulkDenyIpsets = function_get_bulkdeny_array_data([url, bulkdenyrolebundleprefix])
+        roleBulkDenyIpsets = function_get_bulkdeny_array_data([url, bulkdenyrolebundleprefix, bulkdenypriority])
         if !roleBulkDenyIpsets.empty?
             ipsets = ipsets.merge(roleBulkDenyIpsets)
         end

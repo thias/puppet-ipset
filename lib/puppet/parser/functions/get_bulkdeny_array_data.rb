@@ -7,7 +7,8 @@ module Puppet::Parser::Functions
         
         url = args[0]
         prefix = args[1]
-
+        priority = args[2]
+        
         # discover the available keys (all that start with prefix)
         uri = URI.parse(url + prefix + "?keys")
         response = Net::HTTP.get_response(uri)
@@ -34,7 +35,7 @@ module Puppet::Parser::Functions
                 
                 bulkdenyIpsets.each do |ipset_name, ips|
                     # remove "ipsets.bulkdeny" magic words from keys and add rule and priority
-                    ipset_name = ipset_name.gsub("ipsets.bulkdeny.", "") + "_d_095"
+                    ipset_name = ipset_name.gsub("ipsets.bulkdeny.", "") + "_d_#{priority}"
                     unless ipsetsGroupedByRuleAndPriority[ipset_name]
                         ipsetsGroupedByRuleAndPriority[ipset_name] = []
                     end

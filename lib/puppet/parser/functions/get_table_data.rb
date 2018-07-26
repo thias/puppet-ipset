@@ -6,8 +6,9 @@ module Puppet::Parser::Functions
         require "base64"
         
         url = args[0]
-        
-        uri = URI.parse(url)
+        bundle = args[1]
+
+        uri = URI.parse(url + bundle)
         response = Net::HTTP.get_response(uri)
         
         responseBodyParsed = ""

@@ -7,17 +7,17 @@ module Puppet::Parser::Functions
         
         # get config from args
         url = args[0]
-        defaultbundleurl = args[0] + args[1]
-        rolebundleurl = args[0] + args[2]
+        defaultbundle = args[0]
+        rolebundle = args[0]
         bulkdenyglobalbundleprefix = args[3]
         bulkdenyrolebundleprefix = args[4]
         bulkdenypriority = args[5]
         
         # get tabled data for generic "ipsets" bundle 
-        ipsets = function_get_table_data([defaultbundleurl])
+        ipsets = function_get_table_data([url, defaultbundle])
         
         # add role-specific tabled ipsets (ipsets_$server_role) if available
-        roleIpsets = function_get_table_data([rolebundleurl])
+        roleIpsets = function_get_table_data([url, rolebundle])
         if !roleIpsets.empty?
             ipsets = ipsets.merge(roleIpsets)
         end
